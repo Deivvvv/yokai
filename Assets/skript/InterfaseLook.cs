@@ -14,11 +14,13 @@ public class InterfaseLook : MonoBehaviour , IPointerEnterHandler, IPointerExitH
     }
     public void OnPointerEnter(PointerEventData pointerEventData)
     {
+        Debug.Log("look");
         mapRedactor.LoadKey(true);
     }
 
     public void OnPointerExit(PointerEventData pointerEventData)
     {
+        Debug.Log("onlook");
         mapRedactor.LoadKey(false);
     }
 }

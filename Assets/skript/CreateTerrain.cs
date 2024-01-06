@@ -8,6 +8,7 @@ using UnityEngine.Tilemaps;
 public class CreateTerrain : MonoBehaviour
 {
     public List<Tile> wallCase;
+    public List<Tile> wallCaseBG;
 
     public Text SizeWorld;
     public Text CorWorld;
@@ -22,6 +23,7 @@ public class CreateTerrain : MonoBehaviour
     public GridLayout WorldGrid;
     public Tilemap WorldGridMap;
     public Tilemap WallMap;
+    public Tilemap WallMapBG;
 
     public Transform WorldLevelsWindow;
     public Transform TileGrid;
@@ -69,7 +71,7 @@ public class CreateTerrain : MonoBehaviour
         }
         ResetBut.onClick.AddListener(() => Reset());
         ResetButExit.onClick.AddListener(() => ResetEx());
-       // sar.
+
         sizes = new List<Vector2Int>();
         sizes.Add(new Vector2Int(11, 11));
         sizes.Add(new Vector2Int(15, 15));
@@ -115,7 +117,22 @@ public class CreateTerrain : MonoBehaviour
         CreateWorld(0);
     }
 
+    /*
+     пол-поверхность
+    пол декор
+    полу блоки пола-фундамет барельеф
 
+    стены
+    стены декор
+    стены подпорки
+    двери
+
+    мебель низ
+     мебель
+    мебель декор
+    мебель низ(перед)
+     
+     */
     void LoadTile(int a)
     {
         selectTile[0] = a;
@@ -243,6 +260,10 @@ public class CreateTerrain : MonoBehaviour
                 EditMap(true);
             else if (Input.GetMouseButton(1))
                 EditMap(false);
+            else if (Input.GetMouseButton(3))
+                EditWall(true);
+            else if (Input.GetMouseButton(2))
+                EditWall(false);
         }
     }
     void EditMap(bool add)
@@ -255,6 +276,35 @@ public class CreateTerrain : MonoBehaviour
 
 
         WorldGridMap.SetTile(cellPosition, (add)?GetTile(): basikTile);
+    }
+    void EditWall(bool add)
+    {
+        if (cellPosition[0] >= sar.size[0] ||
+            cellPosition[1] >= sar.size[1] ||
+            cellPosition[0] < 0 ||
+            cellPosition[1] < 0)
+            return;
+        int a = cellPosition[0] + cellPosition[1] * sar.size[0];
+        if (add)
+        {
+            if (sar.wallFloor[a] != 0)
+                return;
+            else
+                sar.wallFloor[a] = 1;
+        }
+        else
+        {
+
+            if (sar.wallFloor[a] != 1)
+                return;
+            else
+                sar.wallFloor[a] = 0;
+        }
+
+
+        WallMap.ClearAllTiles();
+        WallMapBG.ClearAllTiles();
+        ReadWall();
     }
 
     private void FixedUpdate()
@@ -285,24 +335,24 @@ public class CreateTerrain : MonoBehaviour
 
         gameObject.GetComponent<CreateTerrain>().enabled = true;
 
-        sar.wallFloor[0] = 1;
-        sar.wallFloor[1] = 1;
+        //sar.wallFloor[0] = 1;
+        //sar.wallFloor[1] = 1;
 
-        sar.wallFloor[14] = 1;
-        sar.wallFloor[15] = 1;
-
-
-        sar.wallFloor[34] = 1;
-        sar.wallFloor[35] = 1;
-        sar.wallFloor[42] = 1;
-        sar.wallFloor[43] = 1;
-        sar.wallFloor[44] = 1;
-        sar.wallFloor[45] = 1;
-        sar.wallFloor[46] = 1;
+        //sar.wallFloor[14] = 1;
+        //sar.wallFloor[15] = 1;
 
 
-        sar.wallFloor[61] = 1;
-        sar.wallFloor[sar.wallFloor.Length-1] = 1;
+        //sar.wallFloor[34] = 1;
+        //sar.wallFloor[35] = 1;
+        //sar.wallFloor[42] = 1;
+        //sar.wallFloor[43] = 1;
+        //sar.wallFloor[44] = 1;
+        //sar.wallFloor[45] = 1;
+        //sar.wallFloor[46] = 1;
+
+
+        //sar.wallFloor[61] = 1;
+        //sar.wallFloor[sar.wallFloor.Length-1] = 1;
         ReadWall();
     }
 
@@ -416,10 +466,24 @@ public class CreateTerrain : MonoBehaviour
                     cell[2] = getInt(a - 1);
                     break;
             }
-            if (!cell[0] && !cell[1] && !cell[2])  t= 0;
-            else if (!cell[0]) t = 1;
-            else if (!cell[2]) t= 2;
-            else if (!cell[1]) t= 3;
+            if ((cell[0] && cell[1] && cell[2]))
+            {
+
+            }
+            else  if (cell[0] && cell[2]) t = 3;
+            else
+            {
+                if (!cell[0] && !cell[2]) t = 0;
+                else if (!cell[0]) t = 1;
+                else if (!cell[2]) t = 2;
+            }
+            //if (!cell[0] && !cell[1] && !cell[2])  t= 0;
+            //else if (!cell[0]) t = 1;
+            //else if (!cell[2]) t = 2;
+            //else if (!cell[0] && !cell[1]) t = 3;
+            //else if (!cell[1] && !cell[2]) t = 3;
+            //else if (!cell[1]) t = 0;
+            //else if (!cell[1] && !cell[2]) t = 3;
 
             if (t != 5)
                 t = deCoder(t,b);
@@ -439,7 +503,6 @@ public class CreateTerrain : MonoBehaviour
                     }
                     else
                     {
-
                         if (!getInt(a - 1))
                             t = deCoder(1, b);
                     }
@@ -452,7 +515,6 @@ public class CreateTerrain : MonoBehaviour
                     }
                     else
                     {
-
                         if (!getInt(a + 1))
                             t = deCoder(2, b);
                     }
@@ -465,7 +527,6 @@ public class CreateTerrain : MonoBehaviour
                     }
                     else
                     {
-
                         if (!getInt(a +1))
                             t = deCoder(1, b);
                     }
@@ -478,7 +539,6 @@ public class CreateTerrain : MonoBehaviour
                     }
                     else
                     {
-
                         if (!getInt(a - 1))
                             t = deCoder(2, b);
                     }
@@ -490,6 +550,28 @@ public class CreateTerrain : MonoBehaviour
 
         int[] numD = new int[sar.wallFloor.Length*4]; 
         Vector3Int[] vc = new Vector3Int[sar.wallFloor.Length*4];
+
+        List<int> sWall = new List<int>();
+        List<int> iWall = new List<int>();
+        List<int> eWall = new List<int>();
+
+        void AddWall(int a, bool left)
+        {
+            if (left)
+            {
+                if (numD[a] == 1)
+                    sWall.Add(a);
+                else if (numD[a] == 2)
+                    iWall.Add(a);
+            }
+            else
+            {
+                if (numD[a] == 2)
+                    iWall.Add(a);
+                else if (numD[a] == 3)
+                    eWall.Add(a);
+            }
+        }
 
         //углы
         int us = s - 1;
@@ -516,7 +598,9 @@ public class CreateTerrain : MonoBehaviour
         {
             int usl = us * 4;
             numD[usl] = scan(us, 0);
+            AddWall(usl, true );
             numD[usl + 1] = cutScan(us, 1, true);
+            AddWall(usl+1, false);
             numD[usl + 2] =  5;
             numD[usl + 3] = cutScan(us, 3, false);
         }
@@ -527,7 +611,9 @@ public class CreateTerrain : MonoBehaviour
         {
             int usl = us * 4;
             numD[usl] = cutScan(us, 0, true);
+            AddWall(usl, true);
             numD[usl + 1] = scan(us, 1);
+            AddWall(usl + 1, false);
             numD[usl + 2] = cutScan(us, 2, false);
             numD[usl + 3] =  5;
         }
@@ -540,7 +626,9 @@ public class CreateTerrain : MonoBehaviour
             if (sar.wallFloor[i] == 1)
             {
                 numD[usl] = cutScan(i, 0, false);
+                AddWall(usl, true);
                 numD[usl + 1] = cutScan(i, 1, false);
+                AddWall(usl + 1, false);
                 numD[usl + 2] = scan(i, 2);
                 numD[usl + 3] = scan(i, 3);
             }
@@ -550,7 +638,9 @@ public class CreateTerrain : MonoBehaviour
             if (sar.wallFloor[us] == 1)
             {
                 numD[usl] = scan(us, 0);
+                AddWall(usl, true);
                 numD[usl + 1] = scan(us, 1);
+                AddWall(usl + 1, false);
                 numD[usl + 2] = cutScan(us, 2, false);
                 numD[usl + 3] = cutScan(us, 3, false);
             }
@@ -564,7 +654,9 @@ public class CreateTerrain : MonoBehaviour
             if (sar.wallFloor[us] == 1)
             {
                 numD[usl] = cutScan(us, 0, true);
+                AddWall(usl, true);
                 numD[usl + 1] = scan(us, 1);
+                AddWall(usl + 1, false);
                 numD[usl + 2] = scan(us, 2);
                 numD[usl + 3] = cutScan(us, 3, true);
             }
@@ -574,7 +666,9 @@ public class CreateTerrain : MonoBehaviour
             if (sar.wallFloor[us] == 1)
             {
                 numD[usl] = scan(us, 0);
+                AddWall(usl, true);
                 numD[usl + 1] = cutScan(us, 1, true);
+                AddWall(usl + 1, false);
                 numD[usl + 2] = cutScan(us, 2, true); 
                 numD[usl + 3] = scan(us, 3);
             }
@@ -608,7 +702,9 @@ public class CreateTerrain : MonoBehaviour
                     int usl = d * 4;
 
                     numD[usl] = scan(d, 0);
+                    AddWall(usl, true);
                     numD[usl + 1] = scan(d, 1);
+                    AddWall(usl + 1, false);
                     numD[usl + 2] = scan(d, 2);
                     numD[usl + 3] = scan(d, 3);
                 }
@@ -616,11 +712,70 @@ public class CreateTerrain : MonoBehaviour
             }
         TileBase[] maps = new TileBase[numD.Length];
         for (int i = 0; i < numD.Length; i++)
-        {if (numD[i] != 0)
-              //  Debug.Log($"{i} :{numD[i]}");
+        {
             maps[i] = wallCase[numD[i]];
         }
         WallMap.SetTiles(vc, maps);
+
+        //wall
+        //for (int i = 0; i < numBg.Count; i++)
+        //{
+        //    s = numBg[i];
+        //    s +=1;
+        //    if (numD[s] == 2 )
+        //    {
+             
+        //        iWall.Add(s);
+        //        int x = (vc[s][1] + 1) * 4 * sar.size[0];
+              
+        //        while (s +4 < numD.Length && s+4 <x)
+        //        {
+        //            s += 4;
+        //            if (numD[s-1] != 2)
+        //                break;
+
+        //                iWall.Add(s - 1);
+        //            if (numD[s] != 2)
+        //            {
+        //                eWall.Add(s);
+        //                break;
+        //            }
+        //            else
+        //                iWall.Add(s);
+        //        }
+
+        //    }
+        //    else if (numD[s] == 3)
+        //        eWall.Add(s);
+        //}
+
+        TileBase[] mapsBg = new TileBase[sWall.Count];
+        Vector3Int[] vcBg = new Vector3Int[sWall.Count];
+        for(int i = 0; i < mapsBg.Length; i++)
+        {
+            mapsBg[i] = wallCaseBG[0];
+            vcBg[i] = vc[sWall[i]];
+        }
+        WallMapBG.SetTiles(vcBg, mapsBg);
+
+        mapsBg = new TileBase[iWall.Count];
+        vcBg = new Vector3Int[iWall.Count];
+        for (int i = 0; i < mapsBg.Length; i++)
+        {
+            mapsBg[i] = wallCaseBG[2];
+            vcBg[i] = vc[iWall[i]];
+        }
+        WallMapBG.SetTiles(vcBg, mapsBg);
+
+
+        mapsBg = new TileBase[eWall.Count];
+        vcBg = new Vector3Int[eWall.Count];
+        for (int i = 0; i < mapsBg.Length; i++)
+        {
+            mapsBg[i] = wallCaseBG[1];
+            vcBg[i] = vc[eWall[i]];
+        }
+        WallMapBG.SetTiles(vcBg, mapsBg);
     }
 
     TileBase GetTile()
