@@ -2,9 +2,50 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+class Region
+{
+    public string Name;
+
+    public int Size;
+    public List<int> Chunk = new List<int>();
+}
+class Chunk
+{
+    public float[] data;
+}
+class Provinse
+{
+    class RData
+    {
+        List<intM> Cor = new List<intM>();
+        List<int> Units;
+    }
+
+    public intM Position;
+    
+    List<RData> R;
+
+    public Provinse(int x,int y)
+    {
+        Position = new intM(x, y);
+    }
+    public void AddR(int x, int y, int z)
+    {
+        if (z > R.Count+1)
+            z = R.Count +1;
+
+    }
+}
+
 public class world : MonoBehaviour
 {
     public Vector2Int ChunkSize;
+
+    //List<>
+
+
+    string[] RegionText = {"Алеандра", "Нозво" };
 
     public int Seed;
     // Start is called before the first frame update
@@ -26,272 +67,100 @@ public class world : MonoBehaviour
     используя толщину горного массива + шум гороной толщиный образуем горы на стыке
      */
 
-    void Perlin(int xSize, int ySize)
+     float[] Perlin(int xSize, int ySize)
     {
-       // float scale = Mathf.Sqrt(xChunk * xChunk + yChunk * yChunk);
+        // float scale = Mathf.Sqrt(xChunk * xChunk + yChunk * yChunk);
+        float[] xc = new float[xSize*ySize];
 
         int xOrg = (int)Random.Range(0, 1512);
         int yOrg = (int)Random.Range(0, 1512);
 
-        Texture2D xc = new Texture2D(xSize, ySize);
+        //Texture2D xc = new Texture2D(xSize, ySize);
 
         int i = 0;
         float y = 0.0F;
-        while (y < xc.height)
+        while (y < ySize)
         {
+            float yCoord = yOrg + y;// / xc.height * (scale * AddScale[0]);
             float x = 0.0F;
-            while (x < xc.width)
+            while (x < xSize)
             {
                 float xCoord = xOrg + x;// / xc.width * (scale * AddScale[0]);
-                float yCoord = yOrg + y;// / xc.height * (scale * AddScale[0]);
 
                 float sample = Mathf.PerlinNoise(xCoord, yCoord);
-                Vector3Int D = new Vector3Int((int)x, (int)y, 50);
-                Color C1 = new Color(WorldWater + 1, 0, 0);
 
-                AddTile(0, 0, WorldWater, D);
-                if (sample > 0.7f)
-                {
-
-                }
-                else
-                {
-                    AddTile(1, 1, WorldBiom, D);
-                    C1 = new Color(WorldWater + 1, (WorldBiom) + 1, 0);
-                    // C1 = new Color(0, WorldBiom + 1, 0);
-                }
-
-                pix[i] = C1;
+                xc[i] = sample;
+               // pix[i] = C1;
                 x++;
                 i++;
             }
             y++;
         }
+        return xc;
+    }
+
+
+    void GenerateBorder()
+    {
+
+    }
+
+    void AddRegion()//сдоет логическую область игры
+    {
+
+    }
+    void CreateProvSize(int s, int x, int y)
+    {
+        Provinse prov = new Provinse(x, y);
+        int[] Position = { x, y };
+        /* размеры провинцый
+         * XL 7 - 9
+         * L 5 - 7
+         * M 3 - 5
+         * s 1 - 3
+         */
+
+    }
+    void CreatePath()//формирует путь до другой територии, используя указзаноое растояние от требуемых
+    {
 
     }
     public void Generate()
     {
-        for (int iz = 0; iz < mapData.level.Length; iz++)
-        {
-            mapData.level[iz].ClearAllTiles();
-        }
-        int cof1 = 0;
-
         if (Seed != 0)
         {
             Random.seed = Seed;
         }
+        /*
+         принемаем 0 за центр мира, размещаем в нем мироой камень, дерево или великую пропасть
+         делим мир на регионы и провиныцыи входящие в него
+         */
+        int[] pathSize = {3,7 };//расстояние до центра мира
+        int regionSize = 2;
+        
 
-        if (WorldWater == -1)
-        {
-            cof1 = Random.Range(0, mapData.DataTile[0].Data.Length);
-            WorldWater = cof1;
-        }
+       // path  Random.Range(3, 7);
 
-        if (WorldBiom == -1)
-        {
-            cof1 = Random.Range(0, mapData.DataTile[1].Data.Length);
-            WorldBiom = cof1;
-        }
+        //Texture2D xc = new Texture2D(xChunk, yChunk);
+        //float[] globalMap = Perlin(ChunkSize[0], ChunkSize[1]);//3/5
 
-        // AddBiom = new int[2];
-        bool turn = false;
-        //for (int ix = 0; ix < AddBiom.Length; ix++)
-        //{
-        //    AddBiom[ix] = -1;
-        //}
-        if (AddBiom[0] == -1)
-        {
-            while (turn == false)
-            {
-                cof1 = Random.Range(0, mapData.DataTile[1].Data.Length);
-                if (cof1 != WorldBiom)
-                {
-                    AddBiom[0] = cof1;
-                    turn = true;
-                }
-            }
-            turn = false;
-        }
-        if (AddBiom[1] == -1)
-        {
-            while (turn == false)
-            {
-                cof1 = Random.Range(0, mapData.DataTile[1].Data.Length);
-                if (cof1 != WorldBiom)
-                {
-                    if (AddBiom[0] != cof1)
-                    {
+        AddRegion();
 
-                        AddBiom[1] = cof1;
-                        turn = true;
-                    }
-                }
-            }
-        }
-
-        Texture2D xc = new Texture2D(xChunk, yChunk);
-        //Texture2D xc1 = new Texture2D(xChunk, yChunk);
-        //Texture2D xc2 = new Texture2D(xChunk, yChunk);
-        //  xc.filterMode = FilterMode.Point;
-        Color[] pix = new Color[xc.width * xc.height];
-        Color[] pix1 = new Color[xc.width * xc.height];
-        Color[] pix2 = new Color[xc.width * xc.height];
+        /*
+         создаем регионы
+        опрделяем удаленность от города к городу
+        размеры регионов(вкоеиваем по одному
+        кол-во важных точек
+         */
 
 
 
+        /*
+         регион: розелмия
+        центральная провинция (столица, где стоит замок игрока)
+        лагерь (т0) , 
+         */
 
 
-
-        float scale = Mathf.Sqrt(xChunk * xChunk + yChunk * yChunk);
-
-
-        //WaterGen
-        int xOrg = (int)Random.Range(0, 1512);
-        int yOrg = (int)Random.Range(0, 1512);
-
-        int i = 0;
-        float y = 0.0F;
-        while (y < xc.height)
-        {
-            float x = 0.0F;
-            while (x < xc.width)
-            {
-                float xCoord = xOrg + x / xc.width * (scale * AddScale[0]);
-                float yCoord = yOrg + y / xc.height * (scale * AddScale[0]);
-
-                float sample = Mathf.PerlinNoise(xCoord, yCoord);
-                Vector3Int D = new Vector3Int((int)x, (int)y, 50);
-                Color C1 = new Color(WorldWater + 1, 0, 0);
-
-                AddTile(0, 0, WorldWater, D);
-                if (sample > 0.7f)
-                {
-
-                }
-                else
-                {
-                    AddTile(1, 1, WorldBiom, D);
-                    C1 = new Color(WorldWater + 1, (WorldBiom) + 1, 0);
-                    // C1 = new Color(0, WorldBiom + 1, 0);
-                }
-
-                pix[i] = C1;
-                x++;
-                i++;
-            }
-            y++;
-        }
-
-        //Add Biom
-        xOrg = (int)Random.Range(0, 1512);
-        yOrg = (int)Random.Range(0, 1512);
-
-        i = 0;
-        y = 0.0F;
-        while (y < xc.height)
-        {
-            float x = 0.0F;
-            while (x < xc.width)
-            {
-                float xCoord = xOrg + x / xc.width * (scale * AddScale[1]);
-                float yCoord = yOrg + y / xc.height * (scale * AddScale[1]);
-
-                float sample = Mathf.PerlinNoise(xCoord, yCoord);
-
-                Color C1 = new Color(pix[i].r, pix[i].g, 0);
-                if (pix[i].g > 0)
-                {
-                    Vector3Int D = new Vector3Int((int)x, (int)y, 50);
-                    if (sample > 0.7f)
-                    {
-                        AddTile(2, 1, AddBiom[0], D);
-
-                        C1 = new Color(pix[i].r, pix[i].g, (AddBiom[0] + 1f));
-                    }
-                    else if (sample < 0.3f)
-                    {
-                        AddTile(2, 1, AddBiom[1], D);
-                        C1 = new Color(pix[i].r, pix[i].g, (AddBiom[1] + 1f));
-                    }
-                }
-                pix[i] = C1;
-                x++;
-                i++;
-            }
-            y++;
-        }
-        xc.SetPixels(pix);
-        xc.Apply();
-
-        //forest genertion
-        i = 0;
-        y = 0.0F;
-        while (y < xc.height)
-        {
-            float x = 0.0F;
-            while (x < xc.width)
-            {
-                float xCoord = xOrg + x / xc.width * (scale * AddScale[2]);
-                float yCoord = yOrg + y / xc.height * (scale * AddScale[2]);
-
-                float sample = Mathf.PerlinNoise(xCoord, yCoord);
-
-                Color C1 = new Color(0, 0, 0);
-                if (pix[i].g > 0)
-                {
-                    if (sample > AllForestCof)
-                    {
-
-                        Vector3Int D = new Vector3Int((int)x, (int)y, 50);
-                        if (pix[i].b == 0)
-                        {
-                            cof1 = (int)Random.Range(50 * ForestCof[WorldBiom], 100);
-
-
-                            if (50 < cof1)
-                            {
-                                // AddForest(WorldBiom, D);
-
-                                C1 = new Color((WorldBiom + 1f), 0, 0);
-                            }
-
-                        }
-                        else
-                        {
-                            int id = (int)(pix[i].b - 1);
-
-                            cof1 = (int)Random.Range(50 * ForestCof[id], 100);
-
-                            if (50 < cof1)
-                            {
-                                C1 = new Color(pix[i].b, 0, 0);
-                                //Debug.Log(pix[i]);
-                                //Debug.Log(C1);
-                                //Debug.Log((pix[i].b) * 255);
-                                //Debug.Log(id);
-                                //AddForest(id, D);
-                            }
-                        }
-                    }
-                }
-
-                pix1[i] = C1;
-                x++;
-                i++;
-            }
-            y++;
-        }
-        //xc1.SetPixels(pix);
-        //xc1.Apply();
-
-
-        gameObject.GetComponent<MapRedactor>().TranfMap(WorldBiom, pix, pix1, pix2, xChunk);
-
-        //for (int iz = 0; iz < mapData.level.Length; iz++)
-        //{
-
-        //    mapData.level[iz].RefreshAllTiles();
-        //}
     }
 }
