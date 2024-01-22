@@ -15,7 +15,7 @@ public class WorldEditor : MonoBehaviour
 
         public GamePoint(string str, Hex gHex)
         {
-            Name = Name;
+            Name = str;
             Point = new List<int>();
             hex = gHex;
         }
@@ -48,10 +48,13 @@ public class WorldEditor : MonoBehaviour
     Vector3Int cellPosition;
     public Text CorWorld;
     public GridLayout WorldGrid;
+    public Tilemap ViewMap;
+    public Tile ViewTile;
+
     public Tilemap tilemap1;
     public Tilemap tilemap2;
     public Tile[] tiles;
-    Hex gHex;
+    Hex gHex, oldHex;
 
     Vector3 mousePos;
     string mood;
@@ -63,6 +66,8 @@ public class WorldEditor : MonoBehaviour
         SwitchMood("CreatePoint");
         gamePaths = new List<Hex>();
         pathSize = new List<float>();
+        oldHex = new Hex(0);
+        ViewMap.SetTile(new Vector3Int(oldHex.q, oldHex.r, 0), ViewTile);
     }
     void SwitchMood(int i)
     {
@@ -116,17 +121,21 @@ public class WorldEditor : MonoBehaviour
             //        RemovePoint();
             //    break;
             case ("EditPoint"):
-                //if (Input.GetMouseButtonDown(0))
-                //{
-                //    NewPoint();
-                //}
+                if (Input.GetMouseButtonDown(0))
+                {
+                    NewPath();
+                }
+                else
                 //else if (Input.GetMouseButtonDown(2))
                 //{
                 //    SwitchMood("MovePoint");
                 //}
                 //else
                 if (Input.GetMouseButtonDown(1))
+                {
                     SwitchMood(0);
+                    pathLine.gameObject.SetActive(false);
+                }
                 //RemovePath();
                 break;
             case ("MovePoint"):
@@ -143,10 +152,20 @@ public class WorldEditor : MonoBehaviour
     {
 
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        mousePos = new Vector3(mousePos.x, mousePos.y, 0);
+        mousePos = new Vector3(mousePos.x-0.5f, mousePos.y - 0.5f, 0);
         cellPosition = WorldGrid.WorldToCell(mousePos);
         gHex = new Hex(cellPosition[0], cellPosition[1]);
-        CorWorld.text = $"{cellPosition}";
+        if(gHex != oldHex)
+        {
+            oldHex = gHex;
+            CorWorld.text = $"{cellPosition}";
+            ViewMap.ClearAllTiles();
+            ViewMap.SetTile(new Vector3Int(oldHex.q, oldHex.r,0), ViewTile);
+             // ViewMap.SetTile(Hex.Conv(oldHex), ViewTile);
+             if(mood == "EditPoint")
+                pathLine.SetPosition(1, cellPosition);
+
+        }
         //if (pathMood)
         //{
         //    pathLine.SetPosition(1, mousePos);
@@ -182,6 +201,7 @@ public class WorldEditor : MonoBehaviour
             int num = p.Point[i];
             void SetButton(Button button, int i)
             {
+                button.onClick.RemoveAllListeners();
                 button.onClick.AddListener(() => RemovePath(i));
             }
             void SetSlider(Slider slider, int i, bool plus)
@@ -190,8 +210,8 @@ public class WorldEditor : MonoBehaviour
             }
             GameObject go = GetSlider();
             go.transform.SetParent(ListSlider);
-            SetButton(go.transform.GetChild(2).gameObject.GetComponent<Button>(),i);
-            Slider slid = go.transform.GetChild(1).gameObject.GetComponent<Slider>();
+            SetButton(go.transform.GetChild(1).gameObject.GetComponent<Button>(),i);
+            Slider slid = go.transform.GetChild(0).gameObject.GetComponent<Slider>();
             slid.value = pathSize[num];
             SetSlider(slid, i, gamePaths[num].q ==selectObject);
             go.transform.GetChild(2).gameObject.GetComponent<Text>().text = "" + pathSize[num];
@@ -205,8 +225,14 @@ public class WorldEditor : MonoBehaviour
     {
         GamePoint p = GamePoints[selectObject];
         int num = p.Point[i];
-        pathSize[num] = ListSlider.GetChild(i).GetChild(1).gameObject.GetComponent<Slider>().value;
-        ListSlider.GetChild(i).GetChild(0).gameObject.GetComponent<Text>().text = ""+ ((plus) ? pathSize[num] : 1 - pathSize[num]);
+        pathSize[num] = ListSlider.GetChild(i).GetChild(0).gameObject.GetComponent<Slider>().value;
+        ListSlider.GetChild(i).GetChild(2).gameObject.GetComponent<Text>().text = ""+ ((plus) ? pathSize[num] : 1 - pathSize[num]);
+        if (selectPath != num)
+        {
+            selectPath = num;
+            selectNavPoint = ListMapP.GetChild(num);
+        }
+        ViewPathPosition();
     }
 
 
@@ -218,6 +244,9 @@ public class WorldEditor : MonoBehaviour
             SwitchMood(2);
             selectObject = i;
             ViewPoint();
+
+            pathLine.gameObject.SetActive(true);
+            pathLine.SetPosition(0, cellPosition);
         }
         else
         {
@@ -227,7 +256,8 @@ public class WorldEditor : MonoBehaviour
 
             GamePoints.Add(point);
 
-            tilemap1.SetTile(Hex.Conv(gHex), tiles[0]);
+            tilemap1.SetTile(new Vector3Int(oldHex.q, oldHex.r, 0)//Hex.Conv(gHex)
+                , tiles[0]);
             //GameObject go = Instantiate(origMapPoint);
             //go.transform.position = mousePos;
             //go.transform.SetParent(ListMapP);
@@ -277,7 +307,7 @@ public class WorldEditor : MonoBehaviour
             }
             GamePoints.RemoveAt(i);
             //отчистка тайловой карты
-            tilemap1.SetTile(Hex.Conv(gHex), null);
+            tilemap1.SetTile(new Vector3Int(p.hex.q, p.hex.r,0), null);
         }
     }
 
@@ -291,11 +321,12 @@ public class WorldEditor : MonoBehaviour
             int i1 = p1.Point.FindIndex(x => x == selectObject);
             if(i1 == -1)
             { 
-                Hex hex = new Hex(i1, i2);
+                Hex hex = new Hex(selectObject, i2);
                 int i = gamePaths.FindIndex(x => x == new Hex(-1));
                 if (i == -1)
                 {
                     i = gamePaths.Count;
+                    //hex.q = i;
                     gamePaths.Add(hex);
                     pathSize.Add(0.5f);
                 }
@@ -309,9 +340,26 @@ public class WorldEditor : MonoBehaviour
                 GamePoints[i2].Point.Add(i);
 
                 ViewPath(i);
+                ViewPoint();
             }
             //   GamePoints[selectObject].Point.Add();
         }
+    }
+
+    int selectPath;
+    Transform selectNavPoint;
+    void ViewPathPosition()
+    {
+
+        GamePoint p1 = GamePoints[gamePaths[selectPath].q];
+        GamePoint p2 = GamePoints[gamePaths[selectPath].r];
+        Vector3Int v1 = Hex.ConV(p1.hex);
+        Vector3Int v2 = Hex.ConV(p2.hex);
+        Debug.Log("!");
+        //if()
+        Vector3 v3 = new Vector3(v1[0] + v2[0] * pathSize[selectPath], v1[1] + v2[1] * pathSize[selectPath], 0);
+
+        selectNavPoint.position = v3;
     }
     void ViewPath(int i)
     {
@@ -332,14 +380,16 @@ public class WorldEditor : MonoBehaviour
             transf = ListMapP.GetChild(i);
             rend = ListLine.GetChild(i).gameObject.GetComponent<LineRenderer>();
         }
+        selectObject = i;
+        selectNavPoint = transf;
+        ViewPathPosition();
+
         GamePoint p1 = GamePoints[gamePaths[i].q];
         GamePoint p2 = GamePoints[gamePaths[i].r];
 
-        Vector3Int v1 = Hex.Conv(p1.hex);
-        Vector3Int v2 = Hex.Conv(p2.hex);
-        Vector3 v3 = new Vector3(v1[0] + v2[0] * pathSize[i], v1[1] + v2[1] * pathSize[i], 0);
+        Vector3Int v1 = Hex.ConV(p1.hex);
+        Vector3Int v2 = Hex.ConV(p2.hex);
 
-        transf.position = v3;
         rend.SetPosition(0, v1);
         rend.SetPosition(1, v2);
     }

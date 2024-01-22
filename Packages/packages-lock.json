@@ -73,7 +73,7 @@
       "dependencies": {}
     },
     "com.unity.2d.tilemap.extras": {
-      "version": "file:C:/Users/Admin/Downloads/com.unity.2d.tilemap.extras-1.8.2-preview",
+      "version": "file:../lib/2d-extras-1.8.2-preview",
       "depth": 0,
       "source": "local",
       "dependencies": {

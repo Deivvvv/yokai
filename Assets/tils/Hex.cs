@@ -83,6 +83,10 @@ public struct Hex {
 
         return new Vector3Int(hex.q + x, y, 0);
     }
+    public static Vector3Int ConV(Hex hex)
+    {
+        return new Vector3Int(hex.q ,hex.r, 0);
+    }
     public static List<Hex> Ring(Hex center, int radius) {
         List<Hex> h = new List<Hex>();
         Hex current = center + new Hex(0, -radius);
