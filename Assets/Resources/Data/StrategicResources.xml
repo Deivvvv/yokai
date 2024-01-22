@@ -1,0 +1,30 @@
+<root>
+  <Body>
+    <Icon>Gold</Icon>
+    <Name>Gold</Name>
+  </Body>
+  <Body>
+    <Icon>Wood</Icon>
+    <Name>Wood</Name>
+  </Body>
+  <Body>
+    <Icon>Stone</Icon>
+    <Name>Stone</Name>
+  </Body>
+  <Body>
+    <Icon>Cristal</Icon>
+    <Name>Cristal</Name>
+  </Body>
+  <Body>
+    <Icon>Gem</Icon>
+    <Name>Gem</Name>
+  </Body>
+  <Body>
+    <Icon>Sulfur</Icon>
+    <Name>Sulfur</Name>
+  </Body>
+  <Body>
+    <Icon>Mercury</Icon>
+    <Name>Mercury</Name>
+  </Body>
+</root>

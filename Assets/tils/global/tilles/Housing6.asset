@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 13312, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: 1_0
+  m_Name: Housing6
   m_EditorClassIdentifier: 
-  m_Sprite: {fileID: -855298285791758126, guid: 588e4edda6315174fa6daf99d3121771, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.34117648}
+  m_Sprite: {fileID: 21300000, guid: 756e2248988300f4fa712685f3855109, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1
     e01: 0
