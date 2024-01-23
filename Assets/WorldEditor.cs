@@ -57,6 +57,7 @@ public class WorldEditor : MonoBehaviour
     public Tile[] tiles;
     Hex gHex, oldHex;
 
+    Vector3 vFix = new Vector3(0.5f, 0.5f, 0);
     Vector3 mousePos;
     string mood;
     // Start is called before the first frame update
@@ -77,11 +78,11 @@ public class WorldEditor : MonoBehaviour
 
     public void UiLook(bool key)
     {
-
+        uiLook = key;
     }
     public void SliderLook(bool key)
     {
-
+        sliderLook = key;
     }
     #endregion
     #region Slider
@@ -97,7 +98,7 @@ public class WorldEditor : MonoBehaviour
                 if(pathSize[sliderPath[i]] != pathSlider[i].value)
                 {
                     pathSize[sliderPath[i]] = pathSlider[i].value;
-                    ListSlider.GetChild(i).GetChild(2).gameObject.GetComponent<Text>().text = "" + - pathSize[sliderPath[i]];
+                    ListSlider.GetChild(i).GetChild(2).gameObject.GetComponent<Text>().text = "" + pathSize[sliderPath[i]];
                     //pathSize[num] = ListSlider.GetChild(i).GetChild(0).gameObject.GetComponent<Slider>().value;
                     //ListSlider.GetChild(i).GetChild(2).gameObject.GetComponent<Text>().text = "" + ((plus) ? pathSize[num] : 1 - pathSize[num]);
                     //if (selectPath != num)
@@ -105,7 +106,7 @@ public class WorldEditor : MonoBehaviour
                     //    selectPath = num;
                     //    selectNavPoint = ListMapP.GetChild(num);
                     //}
-                    ViewPathPosition();
+                    ViewPathPosition(i);
                 }
             }
 
@@ -161,6 +162,8 @@ public class WorldEditor : MonoBehaviour
                     SwitchMood("CreatePoint");
                     pathLine.gameObject.SetActive(false);
                     InfoPanel.SetActive(false);
+                    uiLook = false;
+                    sliderLook = false;
                 }
                 //RemovePath();
                 break;
@@ -178,7 +181,7 @@ public class WorldEditor : MonoBehaviour
     {
 
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        mousePos = new Vector3(mousePos.x-0.5f, mousePos.y - 0.5f, 0);
+        mousePos = new Vector3(mousePos.x, mousePos.y, 0) - vFix;
         cellPosition = WorldGrid.WorldToCell(mousePos);
         gHex = new Hex(cellPosition[0], cellPosition[1]);
         if(gHex != oldHex)
@@ -189,7 +192,7 @@ public class WorldEditor : MonoBehaviour
             ViewMap.SetTile(new Vector3Int(oldHex.q, oldHex.r,0), ViewTile);
              // ViewMap.SetTile(Hex.Conv(oldHex), ViewTile);
              if(mood == "EditPoint")
-                pathLine.SetPosition(1, cellPosition);
+                pathLine.SetPosition(1, cellPosition + vFix);
 
         }
         if (sliderLook)
@@ -206,7 +209,7 @@ public class WorldEditor : MonoBehaviour
         if (StorageSlider.childCount > 0)
         {
             go = StorageSlider.GetChild(0).gameObject;
-            go.transform.GetChild(2).GetComponent<Button>().onClick.RemoveAllListeners();
+            go.transform.GetChild(1).GetComponent<Button>().onClick.RemoveAllListeners();
         }
         else
         {
@@ -226,7 +229,7 @@ public class WorldEditor : MonoBehaviour
             {
                 button.onClick.AddListener(() => RemovePath(i));
             }
-            GameObject go = Instantiate(origSlider);
+            GameObject go = GetSlider();
             go.transform.SetParent(ListSlider);
             SetButton(go.transform.GetChild(1).gameObject.GetComponent<Button>(), i);
         }
@@ -242,11 +245,8 @@ public class WorldEditor : MonoBehaviour
         for (int i = 0; i < p.Point.Count; i++)
         {
             int num = p.Point[i];
-            Debug.Log(i);
             Transform transf = ListSlider.GetChild(i);
 
-            Debug.Log(i);
-            //  SetSlider(slid, i, gamePaths[num].q ==selectObject);
             pathSlider[i].value = pathSize[num];
             transf.GetChild(2).gameObject.GetComponent<Text>().text = "" + pathSize[num];
         }
@@ -263,19 +263,19 @@ public class WorldEditor : MonoBehaviour
         как минукм указывать тип авопонста и кол-во блоков дороги
          */
     }
-    void EditSlider(int i, bool plus)
-    {
-        GamePoint p = GamePoints[selectObject];
-        int num = p.Point[i];
-        pathSize[num] = ListSlider.GetChild(i).GetChild(0).gameObject.GetComponent<Slider>().value;
-        ListSlider.GetChild(i).GetChild(2).gameObject.GetComponent<Text>().text = ""+ ((plus) ? pathSize[num] : 1 - pathSize[num]);
-        if (selectPath != num)
-        {
-            selectPath = num;
-            selectNavPoint = ListMapP.GetChild(num);
-        }
-        ViewPathPosition();
-    }
+    //void EditSlider(int i, bool plus)
+    //{
+    //    GamePoint p = GamePoints[selectObject];
+    //    int num = p.Point[i];
+    //    pathSize[num] = ListSlider.GetChild(i).GetChild(0).gameObject.GetComponent<Slider>().value;
+    //    ListSlider.GetChild(i).GetChild(2).gameObject.GetComponent<Text>().text = ""+ ((plus) ? pathSize[num] : 1 - pathSize[num]);
+    //    if (selectPath != num)
+    //    {
+    //        selectPath = num;
+    //        selectNavPoint = ListMapP.GetChild(num);
+    //    }
+    //    ViewPathPosition();
+    //}
 
 
     void NewPoint()
@@ -285,10 +285,14 @@ public class WorldEditor : MonoBehaviour
         {
             SwitchMood("EditPoint");
             selectObject = i;
+           // GamePoint point = GamePoints[i];
+          //  sliderPath = new List<int>(new int[point.Point.Count]);
+          //  for (int j = 0; j < point.Point.Count; j++)
+                sliderPath = GamePoints[i].Point;
             ViewPoint();
 
             pathLine.gameObject.SetActive(true);
-            pathLine.SetPosition(0, cellPosition);
+            pathLine.SetPosition(0, cellPosition + vFix);
             InfoPanel.SetActive(true);
         }
         else
@@ -404,26 +408,27 @@ public class WorldEditor : MonoBehaviour
         }
     }
 
-    int selectPath;
-    Transform selectNavPoint;
-
     Vector3 Lerp(Vector3 start, Vector3 end, float percent)
     {
         return (start + percent * (end - start));
     }
-
-    void ViewPathPosition()
+    Vector3[] GetLineVector(int a)
     {
+        GamePoint p1 = GamePoints[gamePaths[a].q];
+        GamePoint p2 = GamePoints[gamePaths[a].r];
+        Vector3[] v = new Vector3[2];
+        v[0] = vFix + Hex.ConV(p1.hex);
+        v[1] = vFix + Hex.ConV(p2.hex);
+        return v;
+    }
+    void ViewPathPosition(int a )
+    {
+        Vector3[] v = GetLineVector(a);
 
-        GamePoint p1 = GamePoints[gamePaths[selectPath].q];
-        GamePoint p2 = GamePoints[gamePaths[selectPath].r];
-        Vector3Int v1 = Hex.ConV(p1.hex);
-        Vector3Int v2 = Hex.ConV(p2.hex);
+        Vector3 v3 = Lerp(v[0], v[1], pathSize[a]);
 
-        Vector3 v3 = Lerp(v1, v2, pathSize[selectPath]);
-        //new Vector3(v1[0] + v2[0] * pathSize[selectPath], v1[1] + v2[1] * pathSize[selectPath], 0);
-
-        selectNavPoint.position = v3;
+        WorldGrid.CellToWorld(mousePos);
+        ListNavP.GetChild(a).position = v3;
     }
     void ViewPath(int i)
     {
@@ -445,17 +450,8 @@ public class WorldEditor : MonoBehaviour
             rend = ListLine.GetChild(i).gameObject.GetComponent<LineRenderer>();
         }
         selectObject = i;
-        selectNavPoint = transf;
-        ViewPathPosition();
-
-        GamePoint p1 = GamePoints[gamePaths[i].q];
-        GamePoint p2 = GamePoints[gamePaths[i].r];
-
-        Vector3Int v1 = Hex.ConV(p1.hex);
-        Vector3Int v2 = Hex.ConV(p2.hex);
-
-        rend.SetPosition(0, v1);
-        rend.SetPosition(1, v2);
+        ViewPathPosition(i);
+        rend.SetPositions(GetLineVector(i));
     }
     void RemovePath(int i)
     {

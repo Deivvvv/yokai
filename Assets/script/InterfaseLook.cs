@@ -19,7 +19,7 @@ public class InterfaseLook : MonoBehaviour , IPointerEnterHandler, IPointerExitH
         if(worldEditor != null)
         switch (Mood)
         {
-            case ("UILook"):
+            case ("UiLook"):
                 worldEditor.UiLook(true);
                 break;
             case ("Slider"):
@@ -32,6 +32,16 @@ public class InterfaseLook : MonoBehaviour , IPointerEnterHandler, IPointerExitH
 
     public void OnPointerExit(PointerEventData pointerEventData)
     {
+        if (worldEditor != null)
+            switch (Mood)
+            {
+                case ("UiLook"):
+                    worldEditor.UiLook(false);
+                    break;
+                case ("Slider"):
+                    worldEditor.SliderLook(false);
+                    break;
+            }
         if (mapRedactor != null)
             mapRedactor.LoadKey(false);
     }
