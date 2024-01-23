@@ -551,15 +551,15 @@ public class world : MonoBehaviour
         for (int i = 0; i < v.Length; i++)
         {
             Debug.Log(hex[i].ToString());
-            v[i] = Hex.Conv(hex[i] + mHex);
+            v[i] = Hex.ConV(hex[i] + mHex);
             t[i] = Tills;
             GameObject Go = Instantiate(Tx);
-            Go.transform.position = new Vector3(v[i][0], v[i][1], 0);
+            Go.transform.position = new Vector3(v[i][0] +0.5f, v[i][1] + 0.5f, 0);
             Go.GetComponent<TextMesh>().text = v[i].ToString();
         }
 
         map.SetTiles(v, t);
-        map.SetTile(Hex.Conv( mHex), Tills1);
+        map.SetTile(Hex.ConV( mHex), Tills1);
 
     }
     void CreatePath()//формирует путь до другой територии, используя указзаноое растояние от требуемых

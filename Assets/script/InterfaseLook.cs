@@ -5,22 +5,34 @@ using UnityEngine.EventSystems;
 
 public class InterfaseLook : MonoBehaviour , IPointerEnterHandler, IPointerExitHandler
 {
+    public string Mood;
     private CreateTerrain mapRedactor;
+    public WorldEditor worldEditor;
 
     void Start()
     {
-        GameObject GO = GameObject.Find("system");
-        mapRedactor = GO.GetComponent<CreateTerrain>();
+        //GameObject GO = GameObject.Find("system");
+        //mapRedactor = GO.GetComponent<CreateTerrain>();
     }
     public void OnPointerEnter(PointerEventData pointerEventData)
     {
-        Debug.Log("look");
-        mapRedactor.LoadKey(true);
+        if(worldEditor != null)
+        switch (Mood)
+        {
+            case ("UILook"):
+                worldEditor.UiLook(true);
+                break;
+            case ("Slider"):
+                worldEditor.SliderLook(true);
+                break;
+            }
+        if (mapRedactor != null)
+            mapRedactor.LoadKey(true);
     }
 
     public void OnPointerExit(PointerEventData pointerEventData)
     {
-        Debug.Log("onlook");
-        mapRedactor.LoadKey(false);
+        if (mapRedactor != null)
+            mapRedactor.LoadKey(false);
     }
 }
