@@ -219,6 +219,7 @@ public class WorldEditor : MonoBehaviour
 
     void ViewPointPath(GamePoint p)
     {
+        Debug.Log(-1);
         for (int i = ListSlider.childCount; i < p.Point.Count; i++)
         {
             void SetButton(Button button, int i)
@@ -230,18 +231,21 @@ public class WorldEditor : MonoBehaviour
             SetButton(go.transform.GetChild(1).gameObject.GetComponent<Button>(), i);
         }
 
-        List<GameObject> gos = new List<GameObject>();
+        Debug.Log(-1);
         for (int i = p.Point.Count; i < ListSlider.childCount; i++)
         {
             ListSlider.GetChild(i).SetParent(StorageSlider);
         }
 
 
+        Debug.Log(-1);
         for (int i = 0; i < p.Point.Count; i++)
         {
             int num = p.Point[i];
+            Debug.Log(i);
             Transform transf = ListSlider.GetChild(i);
 
+            Debug.Log(i);
             //  SetSlider(slid, i, gamePaths[num].q ==selectObject);
             pathSlider[i].value = pathSize[num];
             transf.GetChild(2).gameObject.GetComponent<Text>().text = "" + pathSize[num];
