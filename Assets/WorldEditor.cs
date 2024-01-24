@@ -24,6 +24,7 @@ public class WorldEditor : MonoBehaviour
     List<float> pathSize;
 
 
+    public GameObject WarningCrossWindow;
     public GameObject InfoPanel;
     public GameObject origSlider;
 
@@ -69,12 +70,13 @@ public class WorldEditor : MonoBehaviour
         gamePaths = new List<Hex>();
         pathSize = new List<float>();
         oldHex = new Hex(0);
+
         pathSlider = new List<Slider>();
         ViewMap.SetTile(new Vector3Int(oldHex.q, oldHex.r, 0), ViewTile);
         InfoPanel.SetActive(false);
     }
     #region Looker
-    bool uiLook, sliderLook, sliderLoop;
+    bool uiLook, sliderLook, sliderLoop, crossLook;
 
     public void UiLook(bool key)
     {
@@ -117,7 +119,7 @@ public class WorldEditor : MonoBehaviour
 
     void SwitchMood(string str)
     {
-            MoodText.text = str;
+        MoodText.text = str;
         mood = str;
     }
 
@@ -192,7 +194,7 @@ public class WorldEditor : MonoBehaviour
             ViewMap.SetTile(new Vector3Int(oldHex.q, oldHex.r,0), ViewTile);
              // ViewMap.SetTile(Hex.Conv(oldHex), ViewTile);
              if(mood == "EditPoint")
-                pathLine.SetPosition(1, cellPosition + vFix);
+                pathLine.SetPosition(1, WorldGrid.CellToWorld( cellPosition) + vFix);
 
         }
         if (sliderLook)
@@ -222,7 +224,6 @@ public class WorldEditor : MonoBehaviour
 
     void ViewPointPath(GamePoint p)
     {
-        Debug.Log(-1);
         for (int i = ListSlider.childCount; i < p.Point.Count; i++)
         {
             void SetButton(Button button, int i)
@@ -234,14 +235,12 @@ public class WorldEditor : MonoBehaviour
             SetButton(go.transform.GetChild(1).gameObject.GetComponent<Button>(), i);
         }
 
-        Debug.Log(-1);
         for (int i = p.Point.Count; i < ListSlider.childCount; i++)
         {
             ListSlider.GetChild(i).SetParent(StorageSlider);
         }
 
 
-        Debug.Log(-1);
         for (int i = 0; i < p.Point.Count; i++)
         {
             int num = p.Point[i];
@@ -417,8 +416,12 @@ public class WorldEditor : MonoBehaviour
         GamePoint p1 = GamePoints[gamePaths[a].q];
         GamePoint p2 = GamePoints[gamePaths[a].r];
         Vector3[] v = new Vector3[2];
-        v[0] = vFix + Hex.ConV(p1.hex);
-        v[1] = vFix + Hex.ConV(p2.hex);
+
+        v[0] = vFix + WorldGrid.CellToWorld(Hex.ConV(p1.hex));
+        v[1] = vFix + WorldGrid.CellToWorld(Hex.ConV(p2.hex));
+
+        //v[0] = vFix + Hex.ConV(p1.hex);
+        //v[1] = vFix + Hex.ConV(p2.hex);
         return v;
     }
     void ViewPathPosition(int a )
@@ -427,7 +430,6 @@ public class WorldEditor : MonoBehaviour
 
         Vector3 v3 = Lerp(v[0], v[1], pathSize[a]);
 
-        WorldGrid.CellToWorld(mousePos);
         ListNavP.GetChild(a).position = v3;
     }
     void ViewPath(int i)
@@ -449,7 +451,7 @@ public class WorldEditor : MonoBehaviour
             transf = ListMapP.GetChild(i);
             rend = ListLine.GetChild(i).gameObject.GetComponent<LineRenderer>();
         }
-        selectObject = i;
+       // selectObject = i;
         ViewPathPosition(i);
         rend.SetPositions(GetLineVector(i));
     }
@@ -472,6 +474,22 @@ public class WorldEditor : MonoBehaviour
 
     }
 
+    void SetNewPostion()
+    {
+        Hex lookHex = gHex;
+        GamePoint p = GamePoints[selectObject];
+
+        //проверка что пути не пересекаются
+        if (crossLook)
+        {
+            WarningCrossWindow.SetActive(true);
+        }
+        else
+            //сделать оео подвержденяи на основе uilook
+
+        crossLook = true;
+        p.hex = gHex;
+    }
     void PointMove()
     {
 
