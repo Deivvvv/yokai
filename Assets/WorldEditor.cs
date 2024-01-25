@@ -56,7 +56,7 @@ public class WorldEditor : MonoBehaviour
     public Tilemap tilemap1;
     public Tilemap tilemap2;
     public Tile[] tiles;
-    Hex gHex, oldHex;
+    Hex gHex, oldHex, lookHex;
 
     Vector3 vFix = new Vector3(0.5f, 0.5f, 0);
     Vector3 mousePos;
@@ -136,12 +136,19 @@ public class WorldEditor : MonoBehaviour
                 }
                 else if (Input.GetMouseButtonDown(2))
                 {
-                    SwitchMood("MovePoint");
+                    int i = GamePoints.FindIndex(x => x.hex == gHex);
+                    if(i != -1)
+                    {
+                        selectObject = i;
+                        Debug.Log(gHex.ToString());
+                        lookHex = gHex;
+                        SwitchMood("MovePoint");
+                    }
                 }
                 else if (Input.GetMouseButtonDown(1))
                     RemovePoint();
 
-                    break;
+                break;
             //case ("CreatePath"):
             //    if (Input.GetMouseButtonDown(0))
             //        NewPath();
@@ -171,7 +178,7 @@ public class WorldEditor : MonoBehaviour
                 break;
             case ("MovePoint"):
                 if (Input.GetMouseButtonDown(0))
-                    PointMove();
+                    SetNewPostion();
                 else if (Input.GetMouseButtonDown(1))
                     SwitchMood("CreatePoint");
                 //RemovePath();
@@ -474,24 +481,38 @@ public class WorldEditor : MonoBehaviour
 
     }
 
+    void SetPointComplite(bool complitte)
+    {
+        if (complitte)
+        {
+
+        }
+    }
     void SetNewPostion()
     {
-        Hex lookHex = gHex;
+
+        Debug.Log(gHex.ToString() + " " + lookHex.ToString());
+        //lookHex = gHex;
         GamePoint p = GamePoints[selectObject];
-
+        if (p.hex == gHex)
+            return;
         //проверка что пути не пересекаются
-        if (crossLook)
-        {
-            WarningCrossWindow.SetActive(true);
-        }
-        else
-            //сделать оео подвержденяи на основе uilook
+        //if (!crossLook)//FindNewCross()
+        //{
+        //    WarningCrossWindow.SetActive(true);
+        //}
 
-        crossLook = true;
-        p.hex = gHex;
-    }
-    void PointMove()
-    {
+
+        crossLook = false;
+        tilemap1.SetTile(new Vector3Int(p.hex.q, p.hex.r, 0), null);
+        p.hex = lookHex;
+        tilemap1.SetTile(new Vector3Int(p.hex.q, p.hex.r, 0), tiles[0]);
+
+        for (int i = 0; i < p.Point.Count; i++)
+        {
+            Debug.Log(p.Point[i]);
+            ViewPath(p.Point[i]);
+        }
 
     }
 }
