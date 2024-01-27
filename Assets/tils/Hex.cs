@@ -72,17 +72,7 @@ public struct Hex {
 
     public static Hex zero = new Hex(0, 0);
 
-
-    public static Vector3Int Conv(Hex hex)
-    {
-        int y = hex.r;
-        int x = y / 2;
-
-        if (y < 0 && (y % 2) != 0)
-            x--;
-
-        return new Vector3Int(hex.q + x, y, 0);
-    }
+   
     public static Vector3Int ConV(Hex hex)
     {
         return new Vector3Int(hex.q ,hex.r, 0);
@@ -146,6 +136,11 @@ public struct Hex {
     public Hex(int q, int r) {
         this.q = q;
         this.r = r;
+    }
+    public Hex (Vector3 v)
+    {
+        this.q = (int)v[0];
+        this.r = (int)v[1];
     }
 
     public Vector2 ToPlanar() {
