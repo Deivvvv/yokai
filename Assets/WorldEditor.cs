@@ -42,7 +42,7 @@ public class WorldEditor : MonoBehaviour
     public Transform ListSlider;
 
 
-    int selectObject, pathObejct;
+    int selectObject;
     LineRenderer pathLine;
     public List<Color> gridColor;
     List<GamePoint> GamePoints = new List<GamePoint>();
@@ -59,7 +59,6 @@ public class WorldEditor : MonoBehaviour
     Hex gHex, oldHex, lookHex;
 
     Vector3 vFix = new Vector3(0.5f, 0.5f, 0);
-    Vector3 mousePos;
     string mood;
     // Start is called before the first frame update
     void Start()
@@ -76,7 +75,7 @@ public class WorldEditor : MonoBehaviour
         InfoPanel.SetActive(false);
     }
     #region Looker
-    bool uiLook, sliderLook, sliderLoop;
+    bool uiLook, sliderLook, sliderLoop, delLook;
 
     public void UiLook(bool key)
     {
@@ -137,12 +136,12 @@ public class WorldEditor : MonoBehaviour
                 else if (Input.GetMouseButtonDown(2))
                 {
                     int i = GamePoints.FindIndex(x => x.hex == gHex);
-                    if(i != -1)
+                    if (i != -1)
                     {
                         selectObject = i;
                         Debug.Log(gHex.ToString());
                         lookHex = gHex;
-                      //  ViewMap.SetTile(Hex.ConV(gHex)   , tiles[0]);
+                        //  ViewMap.SetTile(Hex.ConV(gHex)   , tiles[0]);
                         tilemap1.color = gridColor[1];
                         SwitchMood("MovePoint");
                     }
@@ -151,12 +150,12 @@ public class WorldEditor : MonoBehaviour
                     RemovePoint();
 
                 break;
-            //case ("CreatePath"):
-            //    if (Input.GetMouseButtonDown(0))
-            //        NewPath();
-            //    else if (Input.GetMouseButtonDown(1))
-            //        RemovePoint();
-            //    break;
+            case ("CreateRoad"):
+                //if (Input.GetMouseButtonDown(0))
+                //    NewPath();
+                //else if (Input.GetMouseButtonDown(1))
+                //    RemovePoint();
+                break;
             case ("EditPoint"):
                 if (Input.GetMouseButtonDown(0) && !uiLook)
                 {
@@ -185,15 +184,17 @@ public class WorldEditor : MonoBehaviour
                 {
 
                     tilemap1.color = gridColor[0];
+                    cellPosition = WorldGrid.WorldToCell(Hex.ConV(lookHex));
+                    // gHex = lookHex;
                     GamePoints[selectObject].hex = lookHex;
                     ViewGhost();
-                   // ViewMap.ClearAllTiles();
+                    // ViewMap.ClearAllTiles();
                     SwitchMood("CreatePoint");
                 }
                 //RemovePath();
                 break;
 
-        }
+        } 
     }
     private void FixedUpdate()
     {
@@ -269,7 +270,7 @@ public class WorldEditor : MonoBehaviour
 
             //Vector3 v = Lerp(Hex.ConV(h1), Hex.ConV(h2), 0);
 
-            int dist = h1.DistanceTo(h2);
+            int dist =1 + h1.DistanceTo(h2);
 
             Debug.Log(dist);
             Vector3[] list = new Vector3[dist];
@@ -353,49 +354,55 @@ public class WorldEditor : MonoBehaviour
     }
     void RemovePoint()
     {
-        int i = GamePoints.FindIndex(x => x.hex == gHex);
-        if (i != -1)
+
+        if (!delLook)
         {
-            List<Hex> list = new List<Hex>();
-            GamePoint p = GamePoints[i];
-            for(int j =0;j < p.Point.Count; i++)
+            delLook = true;
+            int i = GamePoints.FindIndex(x => x.hex == gHex);
+            if (i != -1)
             {
-                int p1 = p.Point[j];
-                Hex hex = gamePaths[p1];
-                if (hex.q == selectObject)
+                List<Hex> list = new List<Hex>();
+                GamePoint p = GamePoints[i];
+                for (int j = 0; j < p.Point.Count; j++)
                 {
-                    list.Add(new Hex(p1, hex.r));
+                    int p1 = p.Point[j];
+                    Hex hex = gamePaths[p1];
+                    if (hex.q == selectObject)
+                    {
+                        list.Add(new Hex(p1, hex.r));
+                    }
+                    else if (hex.r == selectObject)
+                    {
+                        list.Add(new Hex(p1, hex.q));
+                    }
+                    gamePaths[p1] = new Hex(-1);
+
+                    ListNavP.GetChild(p1).gameObject.SetActive(false);
+                    ListLine.GetChild(p1).gameObject.SetActive(false);//.GetComponent<LineRenderer>().SetPositions(new Vector3[0]);
                 }
-                else if (hex.r == selectObject)
+
+                for (int j = 0; j < list.Count; j++)
                 {
-                    list.Add(new Hex(p1, hex.q));
+                    GamePoint p1 = GamePoints[list[j].r];
+                    p1.Point.Remove(list[j].q);
                 }
-                gamePaths[p1] = new Hex(-1);
 
-                ListNavP.GetChild(p1).gameObject.SetActive(false);
-                ListLine.GetChild(p1).gameObject.SetActive(false);//.GetComponent<LineRenderer>().SetPositions(new Vector3[0]);
+                for (int j = 0; j < gamePaths.Count; j++)
+                {
+                    Hex hex = gamePaths[j];
+                    if (hex.q > i)
+                        hex.q--;
+
+                    if (hex.r > i)
+                        hex.r--;
+                    gamePaths[j] = hex;
+                }
+
+                GamePoints.RemoveAt(i);
+                //отчистка тайловой карты
+                tilemap1.SetTile(Hex.ConV(p.hex), null);
             }
-
-            for (int j = 0; j < list.Count; i++)
-            {
-                GamePoint p1 = GamePoints[list[j].r];
-                p1.Point.Remove(list[j].q);
-            }
-
-            for (int j = 0; j < gamePaths.Count; i++)
-            {
-                Hex hex = gamePaths[j];
-                if (hex.q > i)
-                    hex.q--;
-
-                if (hex.r > i)
-                    hex.r--;
-                gamePaths[j] = hex;
-            }
-
-            GamePoints.RemoveAt(i);
-            //отчистка тайловой карты
-            tilemap1.SetTile(Hex.ConV(p.hex), null);
+            delLook = false;
         }
     }
 
@@ -537,6 +544,87 @@ public class WorldEditor : MonoBehaviour
         lookHex = gHex;
         tilemap1.SetTile(new Vector3Int(p.hex.q, p.hex.r, 0), tiles[0]);
 
+
+    }
+
+    class Land
+    {
+        public int Id;
+        int[] borderSize = new int[6];
+        int[] borderNightbro = new int[6];
+
+        public Land(int id)
+        {
+            Id = id;
+        }
+    }
+    void StartStage2()
+    {
+        int nX = 0, mX = 0, nY = 0, mY =0, sX = 0, sY = 0;
+        List<Hex> borders = new List<Hex>();
+        for(int i = 0; i < GamePoints.Count; i++)
+        {
+            GamePoint p = GamePoints[i];
+            if (p.hex.q > mX)
+                mX = p.hex.q;
+            else if (p.hex.q < nX)
+                nX = p.hex.q;
+
+            if (p.hex.r > mY)
+                mY = p.hex.r;
+            else if (p.hex.r < nY)
+                nY = p.hex.r;
+        }
+
+        sY = mY - nY +3;
+        sX = mX - nX +3;
+
+        Vector3Int[] world = new Vector3Int[sY*sX];
+        for (int i = 0; i < world.Length; i++)
+            world[i] = new Vector3Int(-1, -1, -1);
+
+        int GetNumber(Hex hex)
+        {
+            int i = 1 + sX + (hex.q - nX) + (hex.r - nY) * sX;
+
+            return i;
+        }
+
+
+        //s2
+
+        //int r = 5; 
+        //Land[] lands = new Land[GamePoints.Count];
+        //for (int i = 0; i < GamePoints.Count; i++)
+        //{
+        //    GamePoint p = GamePoints[i];
+        //       lands[i] = new Land(i);
+        //    // List<Hex> hexs = Hex.Spiral(GamePoints[i].hex, 2, r * 2);//min -2 города не могут быть ближе чем в 2 клетки 
+        //    List<int> num = new List<int>();
+        //    for (int j = 0; j < GamePoints.Count; j++)
+        //    {
+        //        Hex hex = GamePoints[j].hex;
+        //        int d = hex.DistanceTo(p.hex);
+        //       // if(d <= r*2)
+        //    }
+        //}
+
+
+        //for (int i = 0; i < GamePoints.Count; i++)
+        //{
+        //    GamePoint p = GamePoints[i];
+        //    Hex hex = p.hex;
+
+        //    for (int j = 0; j < GamePoints.Count; j++)
+        //    {
+
+        //    }
+        //        //for (int j = 0; j < p.Point.Count; j++)
+        //        //{
+
+        //        //}
+
+        //}
 
     }
 }
