@@ -13,11 +13,17 @@ public class WorldEditor : MonoBehaviour
         public int CenterTayp;
         public List<int> Point;
 
+        public Hex[] NightBro;
+
+        public LineRenderer Terrain1;
         public GamePoint(string str, Hex gHex)
         {
             Name = str;
             Point = new List<int>();
             hex = gHex;
+            NightBro = new Hex[6];
+            for (int i = 0; i < NightBro.Length; i++)
+                NightBro[i] = new Hex(-1, 5);
         }
     }
     List<Hex> gamePaths;
@@ -327,8 +333,65 @@ public class WorldEditor : MonoBehaviour
          */
     }
 
+
+    struct Vp
+    {
+        public Vector3 V;
+        public int Dis;
+        public Vp (Vector3 v, int d)
+        {
+            V = v;
+            Dis = d;
+        }
+    }
     void NewPoint()
     {
+
+        int GetMod(Hex p1,Hex p2)
+        {
+            int mod = 0;
+            if (p1.q == p2.q)
+                mod = (p1.r > p2.r) ? 3 : 0;
+            else if (p1.q > p2.q)
+                mod = (p1.r > p2.r) ? 4 : 5;
+            else
+                mod = (p1.r > p2.r) ? 2 : 1;
+            return mod;
+        }
+        void ConnectMood( int j, int k)
+        {
+            GamePoint p1 = GamePoints[k];
+            GamePoint p2 = GamePoints[j];
+
+            int d = p1.hex.DistanceTo(p2.hex);
+
+            int mod1 = GetMod(p1.hex, p2.hex);
+            int mod2 = GetMod(p2.hex, p1.hex);
+
+
+            if (p1.NightBro[mod1].q != -1)
+            {
+                if (d < p1.NightBro[mod1].r)
+                {
+                    int x = p1.NightBro[mod1].q;
+
+                    GamePoint p3 = GamePoints[x];
+                    int mod3 = GetMod(p3.hex, p2.hex);
+                    int d1 = p3.hex.DistanceTo(p2.hex);
+                    p3.NightBro[mod3] = new Hex(-1,5);
+
+                    p1.NightBro[mod1] = new Hex(j, d);
+                    p2.NightBro[mod2] = new Hex(k, d);
+                }
+            }
+            else
+            {
+                p1.NightBro[mod1] = new Hex(j, d);
+                p2.NightBro[mod2] = new Hex(k, d);
+            }
+        }
+
+
         int i = GamePoints.FindIndex(x => x.hex == gHex);
         if(i != -1)
         {
@@ -343,9 +406,57 @@ public class WorldEditor : MonoBehaviour
         }
         else
         {
-            GamePoint point = new GamePoint("point", gHex);
+           
 
+            GamePoint point = new GamePoint("point", gHex);
+            point.Terrain1 = Instantiate(origLine).GetComponent<LineRenderer>();
+            int p = GamePoints.Count;
             GamePoints.Add(point);
+
+            for (int j = 0; j < p; j++)
+            {
+                ConnectMood(j, p);
+            }
+
+            Vector3[] vs = new Vector3[7];
+            Hex[] hex = point.hex.GetNeighbours(5);
+            for (int j =0;j < 6; j++)
+            {
+                Debug.Log(hex[j].ToString());
+                //if (point.NightBro[j].q != -1)
+                //{
+                //    vs[j] = Lerp(Hex.ConV(point.hex), Hex.ConV(GamePoints[point.NightBro[j].q].hex), .5f);
+                //}
+                //else
+                //{
+                //    vs[i] = Hex.ConV(hex[j]);
+                //}
+                vs[j] = (point.NightBro[j].q != -1) ?
+                (Lerp(Hex.ConV(point.hex), Hex.ConV(GamePoints[point.NightBro[j].q].hex), .5f)) :
+                Hex.ConV(hex[j]);
+
+                vs[j] = WorldGrid.CellToWorld(new Vector3Int((int)vs[j][0], (int)vs[j][1],0));
+                Debug.Log(vs[j]);
+                tilemap1.SetTile(new Vector3Int((int)vs[j][0], (int)vs[j][1], 0)//Hex.Conv(gHex)
+                    , tiles[0]);
+            }
+            vs[6] = vs[0];
+
+            point.Terrain1.positionCount = vs.Length;
+            point.Terrain1.SetPositions(vs);
+
+            //Hex[] hex = point.hex.GetNeighbours(5);//радиус по умолчанию
+            //Debug.Log(hex.Length);
+            //vs = new List<Vector3>(new Vector3[7]);
+            //for (int j = 0; j < hex.Length; j++)
+            //{
+            //    vs[j] = Hex.ConV(hex[j]);
+            //    Debug.Log(vs[j]);
+            //}
+            //vs[6] = vs[0];
+            //point.Terrain2.positionCount = 7;
+            //point.Terrain2.SetPositions(vs.ToArray());
+
 
             tilemap1.SetTile(new Vector3Int(oldHex.q, oldHex.r, 0)//Hex.Conv(gHex)
                 , tiles[0]);

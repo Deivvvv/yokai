@@ -61,6 +61,11 @@ public struct Hex {
         return new Hex(a.q - b.q, a.r - b.r);
     }
 
+    public static Hex operator *(Hex a, int b)
+    {
+        return new Hex(a.q *b, a.r *b);
+    }
+
     public static bool operator ==(Hex a, Hex b)
     {
         return (a.q == b.q && a.r == b.r);
@@ -72,7 +77,16 @@ public struct Hex {
 
     public static Hex zero = new Hex(0, 0);
 
-   
+    public static Vector3Int Conv(Hex hex)
+    {
+        int y = hex.r;
+        int x = y / 2;
+
+        if (y < 0 && (y % 2) != 0)
+            x--;
+
+        return new Vector3Int(hex.q + x, y, 0);
+    }
     public static Vector3Int ConV(Hex hex)
     {
         return new Vector3Int(hex.q ,hex.r, 0);
@@ -160,6 +174,19 @@ public struct Hex {
     public Hex GetNeighbour(int dir) {
         Hex incr = AXIAL_DIRECTIONS[dir % AXIAL_DIRECTIONS.Length];
         return this + incr;
+    }
+    public Hex[] GetNeighbours(int dir)
+    {
+        Hex[] hex = new Hex[6];
+        for (int i = 0; i < 6; i++)
+        {
+            Hex incr = AXIAL_DIRECTIONS[i % AXIAL_DIRECTIONS.Length];
+            incr *= dir;
+
+            hex[i] = this + incr;
+        }
+
+        return hex;
     }
 
     public int DistanceTo(Hex to) {
